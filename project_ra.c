@@ -1,4 +1,4 @@
-#include "project.h"
+#include "project_ra.h"
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>
@@ -96,6 +96,42 @@
   }
 
 
+void update_inp_fault_list(circuit_t *ckt, gate_fault_t *gate_flt, int i, int no_of_inp) {
+/*
+  printf("Hello\n");
+  int j;
+  int copy_index = ckt->gate[ckt->gate[i].fanin[0]].index;
+  int total = gate_flt[copy_index].out_fault;
+  int update_index = ckt->gate[i].index;
+  printf ("%d %d %d\n", copy_index, total, update_index);
+  for (j = 0; j < total; j++) {
+    //gate_flt[update_index].in_fault_list[0][j] = gate_flt[copy_index].out_fault_list[j];
+  }
+  gate_flt[update_index].in_fault_list[0][j].gate_index = ckt->gate[i].index;
+  gate_flt[update_index].in_fault_list[0][j].input_index = 0;
+  gate_flt[update_index].in_fault_list[0][j].type = ~(ckt->gate[i].in_val[0]);
+  gate_flt[update_index].in_fault[0] = j+1;
+
+  if (no_of_inp == 2) {
+    int copy_index = ckt->gate[ckt->gate[i].fanin[1]].index;
+    int total = gate_flt[copy_index].out_fault;
+    int update_index = ckt->gate[i].index;
+    for (j = 0; j < total; j++) {
+      //gate_flt[update_index].in_fault_list[1][j] = gate_flt[copy_index].out_fault_list[j];
+    }
+    gate_flt[update_index].in_fault_list[1][j].gate_index = ckt->gate[i].index;
+    gate_flt[update_index].in_fault_list[1][j].input_index = 1;
+    gate_flt[update_index].in_fault_list[1][j].type = ~(ckt->gate[i].in_val[1]);
+    gate_flt[update_index].in_fault[1] = j+1;
+  }
+*/
+}
+/*
+void update_output_fault_list (int i) {
+
+}
+*/
+
 /*************************************************************************
 
 Function:  three_val_fault_simulate
@@ -114,10 +150,12 @@ fault_list_t *three_val_fault_simulate(ckt,pat,undetected_flist)
      pattern_t *pat;
      fault_list_t *undetected_flist;
 {
+  printf ("Hello\n");
   int p;  /* looping variable for pattern number */
   int i;
   fault_list_t *fptr, *prev_fptr;
   int detected_flag;
+  gate_fault_t gate_flt[MAX_GATES];
 
   /*************************/
   /* fault-free simulation */
@@ -130,11 +168,25 @@ fault_list_t *three_val_fault_simulate(ckt,pat,undetected_flist)
       ckt->gate[i].in_val[0] = UNDEFINED;
       ckt->gate[i].in_val[1] = UNDEFINED;
       ckt->gate[i].out_val = UNDEFINED;
+      //ckt->gate[i].out_fault = 0;
+      //initialize the no. of faults to 0 for all gates.
+      gate_flt[ckt->gate[i].index].in_fault[0] = 0;
+      gate_flt[ckt->gate[i].index].in_fault[1] = 0;
+      gate_flt[ckt->gate[i].index].out_fault = 0;
     }
+
     /* assign primary input values for pattern */
     for (i = 0; i < ckt->npi; i++) {
       ckt->gate[ckt->pi[i]].out_val = pat->in[p][i];
+      //Update the fault list at PIs
+      int update_index = ckt->gate[ckt->pi[i]].index;
+      int entry_pos = gate_flt[update_index].out_fault;
+      gate_flt[update_index].out_fault_list[entry_pos].gate_index = ckt->gate[ckt->pi[i]].index;
+      gate_flt[update_index].out_fault_list[entry_pos].input_index = -1;
+      gate_flt[update_index].out_fault_list[entry_pos].type = !(pat->in[p][i]);
+      gate_flt[update_index].out_fault = entry_pos + 1;
     }
+    //printf("Hello\n");
     /* evaluate all gates */
     for (i = 0; i < ckt->ngates; i++) {
       /* get gate input values */
@@ -149,6 +201,7 @@ fault_list_t *three_val_fault_simulate(ckt,pat,undetected_flist)
       case BUF:
       case PO:
 	ckt->gate[i].in_val[0] = ckt->gate[ckt->gate[i].fanin[0]].out_val;
+        update_inp_fault_list(ckt, gate_flt, i, 1);
 	break;
       /* gates with two input terminals */
       case AND:
@@ -157,12 +210,14 @@ fault_list_t *three_val_fault_simulate(ckt,pat,undetected_flist)
       case NOR:
 	ckt->gate[i].in_val[0] = ckt->gate[ckt->gate[i].fanin[0]].out_val;
 	ckt->gate[i].in_val[1] = ckt->gate[ckt->gate[i].fanin[1]].out_val;
+        //update_inp_fault_list(ckt, gate_flt, i, 2);
 	break;
       default:
 	assert(0);
       }
       /* compute gate output value */
       evaluate(ckt->gate[i]);
+      //update_output_fault_list(i);
     }
     /* put fault-free primary output values into pat data structure */
     for (i = 0; i < ckt->npo; i++) {

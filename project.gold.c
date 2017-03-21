@@ -1,4 +1,4 @@
-#include "project.h"
+#include "project.gold.h"
 #include <stddef.h>
 #include <string.h>
 #include <stdio.h>

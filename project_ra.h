@@ -61,6 +61,10 @@ struct gate_struct {
   int *fanout;                /* array of indices of fanout gates */
   int in_val[MAX_GATE_FANIN];     /* store input values of gate */
   int out_val;                    /* store output value of gate */
+  //int out_fault;
+  //fault_list_t in_fault_list[MAX_GATE_FANIN][MAX_PO];
+  //int in_fault[MAX_GATE_FANIN];
+  //fault_list_t out_fault_list[MAX_PO];
 };
 
 typedef struct circuit_struct circuit_t;
@@ -71,4 +75,12 @@ struct circuit_struct {
   int *pi;                    /* array of indices of PI gates */
   int *po;                    /* array of indices of PO gates */
   gate_t *gate;               /* array of gates */
+};
+
+typedef struct gate_fault_struct gate_fault_t;
+struct gate_fault_struct {
+  int in_fault[MAX_GATE_FANIN];
+  int out_fault;
+  fault_list_t in_fault_list[MAX_GATE_FANIN][50];
+  fault_list_t out_fault_list[50];
 };
