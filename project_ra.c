@@ -112,26 +112,26 @@ void update_inp_fault_list(circuit_t *ckt, gate_fault_t *gate_flt, int i, int no
     gate_flt[update_index].in_fault_list[0][j].type = gate_flt[copy_index].out_fault_list[j].type;
   }
   if (ckt->gate[i].in_val[0] != LOGIC_X) {
-    gate_flt[update_index].in_fault_list[0][j].gate_index = ckt->gate[i].index;
-    gate_flt[update_index].in_fault_list[0][j].input_index = 0;
-    gate_flt[update_index].in_fault_list[0][j].type = (ckt->gate[i].in_val[0]) ? S_A_0 : S_A_1;
-    gate_flt[update_index].in_fault[0] = j+1;
+    gate_flt[update_index].in_fault_list[0][total].gate_index = ckt->gate[i].index;
+    gate_flt[update_index].in_fault_list[0][total].input_index = 0;
+    gate_flt[update_index].in_fault_list[0][total].type = (ckt->gate[i].in_val[0]) ? S_A_0 : S_A_1;
+    gate_flt[update_index].in_fault[0] = total + 1;
   }
 
   if (no_of_inp == 2) {
-    int copy_index = ckt->gate[ckt->gate[i].fanin[1]].index;
-    int total = gate_flt[copy_index].out_fault;
-    int update_index = ckt->gate[i].index;
+    copy_index = ckt->gate[ckt->gate[i].fanin[1]].index;
+    total = gate_flt[copy_index].out_fault;
+    update_index = ckt->gate[i].index;
     for (j = 0; j < total; j++) {
       gate_flt[update_index].in_fault_list[1][j].gate_index = gate_flt[copy_index].out_fault_list[j].gate_index;
       gate_flt[update_index].in_fault_list[1][j].input_index = gate_flt[copy_index].out_fault_list[j].input_index;
       gate_flt[update_index].in_fault_list[1][j].type = gate_flt[copy_index].out_fault_list[j].type;
     }
     if (ckt->gate[i].in_val[1] != LOGIC_X) {
-      gate_flt[update_index].in_fault_list[1][j].gate_index = ckt->gate[i].index;
-      gate_flt[update_index].in_fault_list[1][j].input_index = 1;
-      gate_flt[update_index].in_fault_list[1][j].type = (ckt->gate[i].in_val[1]) ? S_A_0 : S_A_1;
-      gate_flt[update_index].in_fault[1] = j+1;
+      gate_flt[update_index].in_fault_list[1][total].gate_index = ckt->gate[i].index;
+      gate_flt[update_index].in_fault_list[1][total].input_index = 1;
+      gate_flt[update_index].in_fault_list[1][total].type = (ckt->gate[i].in_val[1]) ? S_A_0 : S_A_1;
+      gate_flt[update_index].in_fault[1] = total + 1;
     }
   }
 
@@ -149,6 +149,7 @@ void update_output_fault_list (circuit_t *ckt, gate_fault_t *gate_flt, int i) {
 	    (gate_flt[i].in_fault_list[1][j].input_index == gate_flt[i].in_fault_list[0][k].input_index) &&
 	    (gate_flt[i].in_fault_list[1][j].type == gate_flt[i].in_fault_list[0][k].type)) {
 	  insert_flag = 0;
+	  printf ("Removed insert_flag\n");
 	  break;
 	}
       }
@@ -177,10 +178,11 @@ void update_output_fault_list (circuit_t *ckt, gate_fault_t *gate_flt, int i) {
     for (j = 0; j < gate_flt[i].in_fault[0]; j++) {
       insert_flag = 1;
       for (k = 0; k < gate_flt[i].in_fault[1]; k++) {
-	if ((gate_flt[i].in_fault_list[1][j].gate_index == gate_flt[i].in_fault_list[0][k].gate_index) &&
-	    (gate_flt[i].in_fault_list[1][j].input_index == gate_flt[i].in_fault_list[0][k].input_index) &&
-	    (gate_flt[i].in_fault_list[1][j].type == gate_flt[i].in_fault_list[0][k].type)) {
+	if ((gate_flt[i].in_fault_list[1][k].gate_index == gate_flt[i].in_fault_list[0][j].gate_index) &&
+	    (gate_flt[i].in_fault_list[1][k].input_index == gate_flt[i].in_fault_list[0][j].input_index) &&
+	    (gate_flt[i].in_fault_list[1][k].type == gate_flt[i].in_fault_list[0][j].type)) {
 	  insert_flag = 0;
+	  printf("Removed insert_flag\n");
 	  break;
 	}
       }
@@ -196,9 +198,9 @@ void update_output_fault_list (circuit_t *ckt, gate_fault_t *gate_flt, int i) {
     int j, k;
     for (j = 0; j < gate_flt[i].in_fault[0]; j++) {
       for (k = 0; k < gate_flt[i].in_fault[1]; k++) {
-	if ((gate_flt[i].in_fault_list[1][j].gate_index == gate_flt[i].in_fault_list[0][k].gate_index) &&
-	    (gate_flt[i].in_fault_list[1][j].input_index == gate_flt[i].in_fault_list[0][k].input_index) &&
-	    (gate_flt[i].in_fault_list[1][j].type == gate_flt[i].in_fault_list[0][k].type)) {
+	if ((gate_flt[i].in_fault_list[1][k].gate_index == gate_flt[i].in_fault_list[0][j].gate_index) &&
+	    (gate_flt[i].in_fault_list[1][k].input_index == gate_flt[i].in_fault_list[0][j].input_index) &&
+	    (gate_flt[i].in_fault_list[1][k].type == gate_flt[i].in_fault_list[0][j].type)) {
 	  gate_flt[i].out_fault_list[gate_flt[i].out_fault].gate_index = gate_flt[i].in_fault_list[0][j].gate_index;
 	  gate_flt[i].out_fault_list[gate_flt[i].out_fault].input_index = gate_flt[i].in_fault_list[0][j].input_index;
 	  gate_flt[i].out_fault_list[gate_flt[i].out_fault++].type = gate_flt[i].in_fault_list[0][j].type;
@@ -207,6 +209,16 @@ void update_output_fault_list (circuit_t *ckt, gate_fault_t *gate_flt, int i) {
       }
     }
   }
+  void input_list() {
+    printf("Input\n");
+    int j;
+    for (j = 0; j < gate_flt[i].in_fault[0]; j++) {
+	gate_flt[i].out_fault_list[gate_flt[i].out_fault].gate_index = gate_flt[i].in_fault_list[0][j].gate_index;
+	gate_flt[i].out_fault_list[gate_flt[i].out_fault].input_index = gate_flt[i].in_fault_list[0][j].input_index;
+	gate_flt[i].out_fault_list[gate_flt[i].out_fault++].type = gate_flt[i].in_fault_list[0][j].type;
+    }
+  }
+
 
   if (ckt->gate[i].out_val != LOGIC_X) {
     gate_flt[i].out_fault_list[gate_flt[i].out_fault].gate_index = i;
@@ -264,10 +276,10 @@ void update_output_fault_list (circuit_t *ckt, gate_fault_t *gate_flt, int i) {
       intersect_list();
   }
   else if (ckt->gate[i].type == INV) {
-    union_list();
+    input_list();
   }
   else if (ckt->gate[i].type == BUF) {
-    union_list();
+    input_list();
   }
 }
 
@@ -299,17 +311,13 @@ fault_list_t *three_val_fault_simulate(ckt,pat,undetected_flist)
 
   for (i = 0; i < ckt->ngates; i++)
     printf ("i = %d, Gate Index: %d, Gate Type: %d\n",i, ckt->gate[i].index, ckt->gate[i].type);
-  for (p = 0; p < pat->len; p++) {
-    printf ("\nPattern %d: ",p);
-    for (i = 0; i < ckt->npi; i++)
-    printf ("%d ", pat->in[p][i]);
-  }
   /*************************/
   /* fault-free simulation */
   /*************************/
 
   /* loop through all patterns */
   for (p = 0; p < pat->len; p++) {
+    printf ("\nPattern %d: ",p);
     /* initialize all gate values to UNDEFINED */
     for (i = 0; i < ckt->ngates; i++) {
       ckt->gate[i].in_val[0] = UNDEFINED;
@@ -324,18 +332,11 @@ fault_list_t *three_val_fault_simulate(ckt,pat,undetected_flist)
 
     /* assign primary input values for pattern */
     for (i = 0; i < ckt->npi; i++) {
+      printf ("%d ", pat->in[p][i]);
       ckt->gate[ckt->pi[i]].out_val = pat->in[p][i];
-      //Update the fault list at PIs
-      int update_index = ckt->gate[ckt->pi[i]].index;
-      int entry_pos = gate_flt[update_index].out_fault;
-      if (pat->in[p][i] != LOGIC_X) {
-	gate_flt[update_index].out_fault_list[entry_pos].gate_index = ckt->gate[ckt->pi[i]].index;
-	gate_flt[update_index].out_fault_list[entry_pos].input_index = -1;
-	gate_flt[update_index].out_fault_list[entry_pos].type = (pat->in[p][i]) ? S_A_0 : S_A_1;
-	gate_flt[update_index].out_fault = entry_pos + 1;
-      }
     }
-    //printf("Hello\n");
+    printf("\n");
+
     /* evaluate all gates */
     for (i = 0; i < ckt->ngates; i++) {
       /* get gate input values */
@@ -373,6 +374,10 @@ fault_list_t *three_val_fault_simulate(ckt,pat,undetected_flist)
     for (i = 0; i < ckt->npo; i++) {
       pat->out[p][i] = ckt->gate[ckt->po[i]].out_val;
       for (j = 0; j < gate_flt[ckt->po[i]].in_fault[0]; j++) {
+	int g_ind = gate_flt[ckt->po[i]].in_fault_list[0][j].gate_index;
+	int i_ind = gate_flt[ckt->po[i]].in_fault_list[0][j].input_index;
+	int typ = gate_flt[ckt->po[i]].in_fault_list[0][j].type;
+	printf ("Fault Gate: %d, Fault Pin: %d, Fault Type: %d\n",g_ind, i_ind, typ);
 	prev_fptr = (fault_list_t *)NULL;
         for (fptr=undetected_flist; fptr != (fault_list_t *)NULL; fptr=fptr->next) {
 	  if ((gate_flt[ckt->po[i]].in_fault_list[0][j].gate_index == fptr->gate_index) &&
@@ -383,7 +388,7 @@ fault_list_t *three_val_fault_simulate(ckt,pat,undetected_flist)
 	      undetected_flist = fptr->next;
 	    else
 	      prev_fptr->next = fptr->next;
-	    break;
+	    //break;
 	  }
 	  prev_fptr = fptr;
 	}
