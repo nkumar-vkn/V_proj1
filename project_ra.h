@@ -81,6 +81,6 @@ typedef struct gate_fault_struct gate_fault_t;
 struct gate_fault_struct {
   int in_fault[MAX_GATE_FANIN];
   int out_fault;
-  fault_list_t in_fault_list[MAX_GATE_FANIN][50];
-  fault_list_t out_fault_list[50];
+  fault_list_t in_fault_list[MAX_GATE_FANIN][300];
+  fault_list_t out_fault_list[300];
 };
