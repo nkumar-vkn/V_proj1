@@ -3,6 +3,9 @@
 #define TRUE  1
 #define FALSE 0
 
+#define PAT_LEN 32
+#define PAT_POW 5
+
 #define LOGIC_0  0
 #define LOGIC_1  1
 #define LOGIC_X  2
@@ -24,10 +27,6 @@
 
 /* Data Structures */
 
-typedef enum fault_res_enum fault_res_t;
-enum fault_res_enum {
-    F_T_0, F_T_1
-};
 typedef enum stuck_value_enum stuck_val_t;
 enum stuck_value_enum {
     S_A_0, S_A_1
@@ -65,10 +64,6 @@ struct gate_struct {
   int *fanout;                /* array of indices of fanout gates */
   int in_val[MAX_GATE_FANIN];     /* store input values of gate */
   int out_val;                    /* store output value of gate */
-  //int out_fault;
-  //fault_list_t in_fault_list[MAX_GATE_FANIN][MAX_PO];
-  //int in_fault[MAX_GATE_FANIN];
-  //fault_list_t out_fault_list[MAX_PO];
 };
 
 typedef struct circuit_struct circuit_t;
@@ -81,19 +76,10 @@ struct circuit_struct {
   gate_t *gate;               /* array of gates */
 };
 
-typedef struct my_fault_list_struct my_fault_list_t;  /* linked list of faults */
-struct my_fault_list_struct {
-
-  int gate_index;        /* index of gate where fault is */
-  int input_index;       /* (== -1) if fault at gate output */
-                         /* (>= 0)  points to gate input where the fault is */
-  stuck_val_t type;      /* type of stuck-at fault */
-  fault_res_t res;	/* fault status: DET, UNDET */
-};
-typedef struct gate_fault_struct gate_fault_t;
-struct gate_fault_struct {
-  int in_fault[MAX_GATE_FANIN];
-  int out_fault;
-  my_fault_list_t in_fault_list[MAX_GATE_FANIN][300];
-  my_fault_list_t out_fault_list[300];
+typedef struct gate_val_struct gate_val_t;
+struct gate_val_struct {
+  int in_val_A[MAX_GATE_FANIN];     /* store input values of gate */
+  int in_val_B[MAX_GATE_FANIN];
+  int out_val_A;                    /* store output value of gate */
+  int out_val_B;
 };

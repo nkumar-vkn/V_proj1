@@ -106,26 +106,14 @@ void update_inp_fault_list(circuit_t *ckt, gate_fault_t *gate_flt, int i, int no
     gate_flt[i].in_fault_list[0][j].gate_index = gate_flt[copy_index].out_fault_list[j].gate_index;
     gate_flt[i].in_fault_list[0][j].input_index = gate_flt[copy_index].out_fault_list[j].input_index;
     gate_flt[i].in_fault_list[0][j].type = gate_flt[copy_index].out_fault_list[j].type;
-    gate_flt[i].in_fault_list[0][j].res = gate_flt[copy_index].out_fault_list[j].res;
+    gate_flt[i].in_fault_list[0][j].status = gate_flt[copy_index].out_fault_list[j].status;
   }
   if (ckt->gate[i].in_val[0] != LOGIC_X) {
     gate_flt[i].in_fault_list[0][total].gate_index = i;
     gate_flt[i].in_fault_list[0][total].input_index = 0;
     gate_flt[i].in_fault_list[0][total].type = (ckt->gate[i].in_val[0]) ? S_A_0 : S_A_1;
-    gate_flt[i].in_fault_list[0][total].res = (ckt->gate[i].in_val[0]) ? F_T_0 : F_T_1;
+    gate_flt[i].in_fault_list[0][total].status = DET;
     gate_flt[i].in_fault[0] = total + 1;
-  }
-  else {
-    gate_flt[i].in_fault_list[0][total].gate_index = i;
-    gate_flt[i].in_fault_list[0][total].input_index = 0;
-    gate_flt[i].in_fault_list[0][total].type = S_A_0;
-    gate_flt[i].in_fault_list[0][total].res = F_T_0;
-
-    gate_flt[i].in_fault_list[0][total+1].gate_index = i;
-    gate_flt[i].in_fault_list[0][total+1].input_index = 0;
-    gate_flt[i].in_fault_list[0][total+1].type = S_A_1;
-    gate_flt[i].in_fault_list[0][total+1].res = F_T_1;
-    gate_flt[i].in_fault[0] = total + 2;
   }
 
   if (no_of_inp == 2) {
@@ -135,37 +123,28 @@ void update_inp_fault_list(circuit_t *ckt, gate_fault_t *gate_flt, int i, int no
       gate_flt[i].in_fault_list[1][j].gate_index = gate_flt[copy_index].out_fault_list[j].gate_index;
       gate_flt[i].in_fault_list[1][j].input_index = gate_flt[copy_index].out_fault_list[j].input_index;
       gate_flt[i].in_fault_list[1][j].type = gate_flt[copy_index].out_fault_list[j].type;
-      gate_flt[i].in_fault_list[1][j].res = gate_flt[copy_index].out_fault_list[j].res;
+      gate_flt[i].in_fault_list[1][j].status = gate_flt[copy_index].out_fault_list[j].status;
     }
     if (ckt->gate[i].in_val[1] != LOGIC_X) {
       gate_flt[i].in_fault_list[1][total].gate_index = i;
       gate_flt[i].in_fault_list[1][total].input_index = 1;
       gate_flt[i].in_fault_list[1][total].type = (ckt->gate[i].in_val[1]) ? S_A_0 : S_A_1;
-      gate_flt[i].in_fault_list[1][total].res = (ckt->gate[i].in_val[1]) ? F_T_0 : F_T_1;
+      gate_flt[i].in_fault_list[1][total].status = DET;
       gate_flt[i].in_fault[1] = total + 1;
     }
-    else {
-      gate_flt[i].in_fault_list[1][total].gate_index = i;
-      gate_flt[i].in_fault_list[1][total].input_index = 0;
-      gate_flt[i].in_fault_list[1][total].type = S_A_0;
-      gate_flt[i].in_fault_list[1][total].res = F_T_0;
-
-      gate_flt[i].in_fault_list[1][total+1].gate_index = i;
-      gate_flt[i].in_fault_list[1][total+1].input_index = 0;
-      gate_flt[i].in_fault_list[1][total+1].type = S_A_1;
-      gate_flt[i].in_fault_list[1][total+1].res = F_T_1;
-      gate_flt[i].in_fault[0] = total + 2;
-    }
   }
+
 }
 
 void update_output_fault_list (circuit_t *ckt, gate_fault_t *gate_flt, int i) {
   
-  void input2_list(int inv) {
+  void input2_list() {
     int j, k, insert_flag = 1;
     for (j = 0; j < gate_flt[i].in_fault[1]; j++) {
       insert_flag = 1;
       for (k = 0; k < gate_flt[i].in_fault[0]; k++) {
+	if (gate_flt[i].in_fault_list[1][j].status == UNDET)
+	  break;
 	if ((gate_flt[i].in_fault_list[1][j].gate_index == gate_flt[i].in_fault_list[0][k].gate_index) &&
 	    (gate_flt[i].in_fault_list[1][j].input_index == gate_flt[i].in_fault_list[0][k].input_index) &&
 	    (gate_flt[i].in_fault_list[1][j].type == gate_flt[i].in_fault_list[0][k].type)) {
@@ -177,28 +156,50 @@ void update_output_fault_list (circuit_t *ckt, gate_fault_t *gate_flt, int i) {
 	gate_flt[i].out_fault_list[gate_flt[i].out_fault].gate_index = gate_flt[i].in_fault_list[1][j].gate_index;
 	gate_flt[i].out_fault_list[gate_flt[i].out_fault].input_index = gate_flt[i].in_fault_list[1][j].input_index;
 	gate_flt[i].out_fault_list[gate_flt[i].out_fault].type = gate_flt[i].in_fault_list[1][j].type;
-	gate_flt[i].out_fault_list[gate_flt[i].out_fault++].res = (inv ^ gate_flt[i].in_fault_list[1][j].res) & 0x01;
+	gate_flt[i].out_fault_list[gate_flt[i].out_fault++].status = gate_flt[i].in_fault_list[1][j].status;
       }
     }
   }
   
-  void union_list(int inv) {
+  void x_input2_list() {
     int j, k, insert_flag = 1;
-    for (j = 0; j < gate_flt[i].in_fault[0]; j++) {
-	gate_flt[i].out_fault_list[j].gate_index = gate_flt[i].in_fault_list[0][j].gate_index;
-	gate_flt[i].out_fault_list[j].input_index = gate_flt[i].in_fault_list[0][j].input_index;
-	gate_flt[i].out_fault_list[j].type = gate_flt[i].in_fault_list[0][j].type;
-	gate_flt[i].out_fault_list[j].res = (inv ^ gate_flt[i].in_fault_list[0][j].res) & 0x01;
-    }
-    gate_flt[i].out_fault = j;
-    //input2_list();
     for (j = 0; j < gate_flt[i].in_fault[1]; j++) {
       insert_flag = 1;
       for (k = 0; k < gate_flt[i].in_fault[0]; k++) {
 	if ((gate_flt[i].in_fault_list[1][j].gate_index == gate_flt[i].in_fault_list[0][k].gate_index) &&
 	    (gate_flt[i].in_fault_list[1][j].input_index == gate_flt[i].in_fault_list[0][k].input_index) &&
-	    (gate_flt[i].in_fault_list[1][j].type == gate_flt[i].in_fault_list[0][k].type) &&
-	    (gate_flt[i].in_fault_list[1][j].res == gate_flt[i].in_fault_list[0][k].res)) {
+	    (gate_flt[i].in_fault_list[1][j].type == gate_flt[i].in_fault_list[0][k].type)) {
+	  insert_flag = 0;
+	  //printf ("Removed insert_flag\n");
+	  break;
+	}
+      }
+      if (insert_flag) {
+	gate_flt[i].out_fault_list[gate_flt[i].out_fault].gate_index = gate_flt[i].in_fault_list[1][j].gate_index;
+	gate_flt[i].out_fault_list[gate_flt[i].out_fault].input_index = gate_flt[i].in_fault_list[1][j].input_index;
+	gate_flt[i].out_fault_list[gate_flt[i].out_fault].type = gate_flt[i].in_fault_list[1][j].type;
+	gate_flt[i].out_fault_list[gate_flt[i].out_fault++].status = UNDET;
+      }
+    }
+  }
+  
+  void union_list() {
+    int j, k, insert_flag = 1;
+    for (j = 0; j < gate_flt[i].in_fault[0]; j++) {
+	gate_flt[i].out_fault_list[j].gate_index = gate_flt[i].in_fault_list[0][j].gate_index;
+	gate_flt[i].out_fault_list[j].input_index = gate_flt[i].in_fault_list[0][j].input_index;
+	gate_flt[i].out_fault_list[j].type = gate_flt[i].in_fault_list[0][j].type;
+	gate_flt[i].out_fault_list[j].status = gate_flt[i].in_fault_list[0][j].status;
+    }
+   gate_flt[i].out_fault = j;
+   for (j = 0; j < gate_flt[i].in_fault[1]; j++) {
+      insert_flag = 1;
+      for (k = 0; k < gate_flt[i].in_fault[0]; k++) {
+	if ((gate_flt[i].in_fault_list[1][j].gate_index == gate_flt[i].in_fault_list[0][k].gate_index) &&
+	    (gate_flt[i].in_fault_list[1][j].input_index == gate_flt[i].in_fault_list[0][k].input_index) &&
+	    (gate_flt[i].in_fault_list[1][j].type == gate_flt[i].in_fault_list[0][k].type)) {
+	  if (gate_flt[i].out_fault_list[k].status == UNDET)
+	    gate_flt[i].out_fault_list[k].status = gate_flt[i].in_fault_list[1][j].status;
 	  insert_flag = 0;
 	  break;
 	}
@@ -207,16 +208,30 @@ void update_output_fault_list (circuit_t *ckt, gate_fault_t *gate_flt, int i) {
 	gate_flt[i].out_fault_list[gate_flt[i].out_fault].gate_index = gate_flt[i].in_fault_list[1][j].gate_index;
 	gate_flt[i].out_fault_list[gate_flt[i].out_fault].input_index = gate_flt[i].in_fault_list[1][j].input_index;
 	gate_flt[i].out_fault_list[gate_flt[i].out_fault].type = gate_flt[i].in_fault_list[1][j].type;
-	gate_flt[i].out_fault_list[gate_flt[i].out_fault++].res = (inv ^ gate_flt[i].in_fault_list[1][j].res) & 0x01;
+	gate_flt[i].out_fault_list[gate_flt[i].out_fault++].status = gate_flt[i].in_fault_list[1][j].status;
       }
     }
   }
   
-  void input1_list(int inv) {
+  void x_union_list() {
+    int j, k, insert_flag = 1;
+    for (j = 0; j < gate_flt[i].in_fault[0]; j++) {
+	gate_flt[i].out_fault_list[j].gate_index = gate_flt[i].in_fault_list[0][j].gate_index;
+	gate_flt[i].out_fault_list[j].input_index = gate_flt[i].in_fault_list[0][j].input_index;
+	gate_flt[i].out_fault_list[j].type = gate_flt[i].in_fault_list[0][j].type;
+	gate_flt[i].out_fault_list[j].status = UNDET;
+    }
+   gate_flt[i].out_fault = j;
+   x_input2_list();
+  }
+  
+  void input1_list() {
     int j, k, insert_flag = 1;
     for (j = 0; j < gate_flt[i].in_fault[0]; j++) {
       insert_flag = 1;
       for (k = 0; k < gate_flt[i].in_fault[1]; k++) {
+	if (gate_flt[i].in_fault_list[0][j].status == UNDET)
+	  break;
 	if ((gate_flt[i].in_fault_list[1][k].gate_index == gate_flt[i].in_fault_list[0][j].gate_index) &&
 	    (gate_flt[i].in_fault_list[1][k].input_index == gate_flt[i].in_fault_list[0][j].input_index) &&
 	    (gate_flt[i].in_fault_list[1][k].type == gate_flt[i].in_fault_list[0][j].type)) {
@@ -228,104 +243,95 @@ void update_output_fault_list (circuit_t *ckt, gate_fault_t *gate_flt, int i) {
 	gate_flt[i].out_fault_list[gate_flt[i].out_fault].gate_index = gate_flt[i].in_fault_list[0][j].gate_index;
 	gate_flt[i].out_fault_list[gate_flt[i].out_fault].input_index = gate_flt[i].in_fault_list[0][j].input_index;
 	gate_flt[i].out_fault_list[gate_flt[i].out_fault].type = gate_flt[i].in_fault_list[0][j].type;
-	gate_flt[i].out_fault_list[gate_flt[i].out_fault++].res = (inv ^ gate_flt[i].in_fault_list[0][j].res) & 0x01;
+	gate_flt[i].out_fault_list[gate_flt[i].out_fault++].status = gate_flt[i].in_fault_list[0][j].status;
       }
     }
   }
-  void intersect_list(int inv) {
+  void intersect_list() {
     //printf ("Intersect\n");
     int j, k, l = 0;
     for (j = 0; j < gate_flt[i].in_fault[0]; j++) {
       for (k = 0; k < gate_flt[i].in_fault[1]; k++) {
 	if ((gate_flt[i].in_fault_list[1][k].gate_index == gate_flt[i].in_fault_list[0][j].gate_index) &&
 	    (gate_flt[i].in_fault_list[1][k].input_index == gate_flt[i].in_fault_list[0][j].input_index) &&
-	    (gate_flt[i].in_fault_list[1][k].type == gate_flt[i].in_fault_list[0][j].type) &&
-	    (gate_flt[i].in_fault_list[1][k].res == gate_flt[i].in_fault_list[0][j].res)) {
+	    (gate_flt[i].in_fault_list[1][k].type == gate_flt[i].in_fault_list[0][j].type)) {
 	  //printf ("Intersection Passed\n");
 	  gate_flt[i].out_fault_list[l].gate_index = gate_flt[i].in_fault_list[0][j].gate_index;
 	  gate_flt[i].out_fault_list[l].input_index = gate_flt[i].in_fault_list[0][j].input_index;
 	  gate_flt[i].out_fault_list[l].type = gate_flt[i].in_fault_list[0][j].type;
-	  gate_flt[i].out_fault_list[l++].res = (inv ^ gate_flt[i].in_fault_list[0][j].res) & 0x01;
+	  gate_flt[i].out_fault_list[l++].status = (gate_flt[i].in_fault_list[0][j].status == UNDET) ? UNDET : gate_flt[i].in_fault_list[1][k].status;
 	  break;
 	}
       }
     }
     gate_flt[i].out_fault = l;
   }
-  void input_list(int inv) {
+  void input_list() {
     int j;
     for (j = 0; j < gate_flt[i].in_fault[0]; j++) {
 	gate_flt[i].out_fault_list[j].gate_index = gate_flt[i].in_fault_list[0][j].gate_index;
 	gate_flt[i].out_fault_list[j].input_index = gate_flt[i].in_fault_list[0][j].input_index;
 	gate_flt[i].out_fault_list[j].type = gate_flt[i].in_fault_list[0][j].type;
-	gate_flt[i].out_fault_list[j].res = (inv ^ gate_flt[i].in_fault_list[0][j].res) & 0x01;
+	gate_flt[i].out_fault_list[j].status = gate_flt[i].in_fault_list[0][j].status;
     }
     gate_flt[i].out_fault = j;
   }
 
-  if(ckt->gate[i].type == AND) {
-    if ((ckt->gate[i].out_val == LOGIC_1) || (ckt->gate[i].out_val == LOGIC_X))
-      union_list(0);
+
+  if ((ckt->gate[i].in_val[0] == LOGIC_X) || (ckt->gate[i].in_val[1] == LOGIC_X))
+    x_union_list();
+  else if(ckt->gate[i].type == AND) {
+    if (ckt->gate[i].out_val == LOGIC_1)
+      union_list();
     else if (ckt->gate[i].in_val[0] == LOGIC_1)
-      input2_list(0);
+      input2_list();
     else if (ckt->gate[i].in_val[1] == LOGIC_1)
-      input1_list(0);
+      input1_list();
     else
-      intersect_list(0);
+      intersect_list();
   }
   else if (ckt->gate[i].type == OR) {
-    if ((ckt->gate[i].out_val == LOGIC_0) || (ckt->gate[i].out_val == LOGIC_X))
-      union_list(0);
+    if (ckt->gate[i].out_val == LOGIC_0)
+      union_list();
     else if (ckt->gate[i].in_val[0] == LOGIC_0)
-      input2_list(0);
+      input2_list();
     else if (ckt->gate[i].in_val[1] == LOGIC_0)
-      input1_list(0);
+      input1_list();
     else
-      intersect_list(0);
+      intersect_list();
   }
   else if (ckt->gate[i].type == NAND) {
-    if ((ckt->gate[i].out_val == LOGIC_0) || (ckt->gate[i].out_val == LOGIC_X))
-      union_list(1);
+    if (ckt->gate[i].out_val == LOGIC_0)
+      union_list();
     else if (ckt->gate[i].in_val[0] == LOGIC_1)
-      input2_list(1);
+      input2_list();
     else if (ckt->gate[i].in_val[1] == LOGIC_1)
-      input1_list(1);
+      input1_list();
     else
-      intersect_list(1);
+      intersect_list();
   }
   else if (ckt->gate[i].type == NOR) {
     if (ckt->gate[i].out_val == LOGIC_1)
-      union_list(1);
+      union_list();
     else if (ckt->gate[i].in_val[0] == LOGIC_0)
-      input2_list(1);
+      input2_list();
     else if (ckt->gate[i].in_val[1] == LOGIC_0)
-      input1_list(1);
+      input1_list();
     else
-      intersect_list(1);
+      intersect_list();
   }
   else if (ckt->gate[i].type == INV) {
-    input_list(1);
+    input_list();
   }
   else if (ckt->gate[i].type == BUF) {
-    input_list(0);
+    input_list();
   }
   
   if (ckt->gate[i].out_val != LOGIC_X) {
     gate_flt[i].out_fault_list[gate_flt[i].out_fault].gate_index = i;
     gate_flt[i].out_fault_list[gate_flt[i].out_fault].input_index = -1;
     gate_flt[i].out_fault_list[gate_flt[i].out_fault].type = (ckt->gate[i].out_val) ? S_A_0 : S_A_1;
-    gate_flt[i].out_fault_list[gate_flt[i].out_fault++].res = (ckt->gate[i].out_val) ? F_T_0 : F_T_1;
-  }
-  else {
-    gate_flt[i].out_fault_list[gate_flt[i].out_fault].gate_index = i;
-    gate_flt[i].out_fault_list[gate_flt[i].out_fault].input_index = -1;
-    gate_flt[i].out_fault_list[gate_flt[i].out_fault].type = S_A_0;
-    gate_flt[i].out_fault_list[gate_flt[i].out_fault++].res = F_T_0;
-
-    gate_flt[i].out_fault_list[gate_flt[i].out_fault].gate_index = i;
-    gate_flt[i].out_fault_list[gate_flt[i].out_fault].input_index = -1;
-    gate_flt[i].out_fault_list[gate_flt[i].out_fault].type = S_A_1;
-    gate_flt[i].out_fault_list[gate_flt[i].out_fault++].res = F_T_1;
+    gate_flt[i].out_fault_list[gate_flt[i].out_fault++].status = DET;
   }
 }
 
@@ -416,14 +422,15 @@ fault_list_t *three_val_fault_simulate(ckt,pat,undetected_flist)
     // Update Undetected Fault List by removing faults at POs
     for (i = 0; i < ckt->npo; i++) {
       pat->out[p][i] = ckt->gate[ckt->po[i]].out_val;
-      if (pat->out[p][i] == LOGIC_X)
-	continue;
       for (j = 0; j < gate_flt[ckt->po[i]].in_fault[0]; j++) {
-	int g_ind = gate_flt[ckt->po[i]].in_fault_list[0][j].gate_index;
+	if (gate_flt[ckt->po[i]].in_fault_list[0][j].status == UNDET)
+	  continue;
+/*	int g_ind = gate_flt[ckt->po[i]].in_fault_list[0][j].gate_index;
 	int i_ind = gate_flt[ckt->po[i]].in_fault_list[0][j].input_index;
 	int typ = gate_flt[ckt->po[i]].in_fault_list[0][j].type;
-	int res = gate_flt[ckt->po[i]].in_fault_list[0][j].res;
-	printf ("Fault Gate: %d, Fault Pin: %d, Fault Type: %d Fault Res: %d\n", g_ind, i_ind, typ, res);
+	int st = gate_flt[ckt->po[i]].in_fault_list[0][j].status;
+	printf ("Fault Gate: %d, Gate Name: %s, Fault Pin: %d, Fault Type: %d Fault Status: %d\n",
+		g_ind, ckt->gate[g_ind].name, i_ind, typ, st);*/
 	prev_fptr = (fault_list_t *)NULL;
         for (fptr = undetected_flist; fptr != (fault_list_t *)NULL; fptr=fptr->next) {
 	  if ((gate_flt[ckt->po[i]].in_fault_list[0][j].gate_index == fptr->gate_index) &&
@@ -465,65 +472,65 @@ printf ("Change 128 0\n");
 	int g_ind = gate_flt[128].in_fault_list[0][j].gate_index;
 	int i_ind = gate_flt[128].in_fault_list[0][j].input_index;
 	int typ = gate_flt[128].in_fault_list[0][j].type;
-	int res = gate_flt[128].in_fault_list[0][j].res;
-	printf ("Fault Gate: %d, Gate Name: %s, Fault Pin: %d, Fault Type: %d Fault Res: %d\n",
-		g_ind, ckt->gate[g_ind].name, i_ind, typ, res);
+	int st = gate_flt[128].in_fault_list[0][j].status;
+	printf ("Fault Gate: %d, Gate Name: %s, Fault Pin: %d, Fault Type: %d Fault Status: %d\n",
+		g_ind, ckt->gate[g_ind].name, i_ind, typ, st);
     }
 printf ("Change 128 1\n");
     for (j = 0; j < gate_flt[128].in_fault[1]; j++) {
 	int g_ind = gate_flt[128].in_fault_list[1][j].gate_index;
 	int i_ind = gate_flt[128].in_fault_list[1][j].input_index;
 	int typ = gate_flt[128].in_fault_list[1][j].type;
-	int res = gate_flt[128].in_fault_list[1][j].res;
-	printf ("Fault Gate: %d, Gate Name: %s, Fault Pin: %d, Fault Type: %d Fault Res: %d\n",
-		g_ind, ckt->gate[g_ind].name, i_ind, typ, res);
+	int st = gate_flt[128].in_fault_list[1][j].status;
+	printf ("Fault Gate: %d, Gate Name: %s, Fault Pin: %d, Fault Type: %d Fault Status: %d\n",
+		g_ind, ckt->gate[g_ind].name, i_ind, typ, st);
     }
 printf ("Change 94 1\n");
     for (j = 0; j < gate_flt[94].in_fault[1]; j++) {
 	int g_ind = gate_flt[94].in_fault_list[1][j].gate_index;
 	int i_ind = gate_flt[94].in_fault_list[1][j].input_index;
 	int typ = gate_flt[94].in_fault_list[1][j].type;
-	int res = gate_flt[94].in_fault_list[1][j].res;
-	printf ("Fault Gate: %d, Gate Name: %s, Fault Pin: %d, Fault Type: %d Fault Res: %d\n",
-		g_ind, ckt->gate[g_ind].name, i_ind, typ, res);
+	int st = gate_flt[94].in_fault_list[1][j].status;
+	printf ("Fault Gate: %d, Gate Name: %s, Fault Pin: %d, Fault Type: %d Fault Status: %d\n",
+		g_ind, ckt->gate[g_ind].name, i_ind, typ, st);
     }
 printf ("Change 94 0\n");
     for (j = 0; j < gate_flt[94].in_fault[0]; j++) {
 	int g_ind = gate_flt[94].in_fault_list[0][j].gate_index;
 	int i_ind = gate_flt[94].in_fault_list[0][j].input_index;
 	int typ = gate_flt[94].in_fault_list[0][j].type;
-	int res = gate_flt[94].in_fault_list[0][j].res;
-	printf ("Fault Gate: %d, Gate Name: %s, Fault Pin: %d, Fault Type: %d Fault Res: %d\n",
-		g_ind, ckt->gate[g_ind].name, i_ind, typ, res);
+	int st = gate_flt[94].in_fault_list[0][j].status;
+	printf ("Fault Gate: %d, Gate Name: %s, Fault Pin: %d, Fault Type: %d Fault Status: %d\n",
+		g_ind, ckt->gate[g_ind].name, i_ind, typ, st);
     }
 printf ("Change 118 1\n");
     for (j = 0; j < gate_flt[118].in_fault[1]; j++) {
 	int g_ind = gate_flt[118].in_fault_list[1][j].gate_index;
 	int i_ind = gate_flt[118].in_fault_list[1][j].input_index;
 	int typ = gate_flt[118].in_fault_list[1][j].type;
-	int res = gate_flt[118].in_fault_list[1][j].res;
-	printf ("Fault Gate: %d, Gate Name: %s, Fault Pin: %d, Fault Type: %d Fault Res: %d\n",
-		g_ind, ckt->gate[g_ind].name, i_ind, typ, res);
+	int st = gate_flt[118].in_fault_list[1][j].status;
+	printf ("Fault Gate: %d, Gate Name: %s, Fault Pin: %d, Fault Type: %d Fault Status: %d\n",
+		g_ind, ckt->gate[g_ind].name, i_ind, typ, st);
     }
 printf ("Change 118 0\n");
     for (j = 0; j < gate_flt[118].in_fault[0]; j++) {
 	int g_ind = gate_flt[118].in_fault_list[0][j].gate_index;
 	int i_ind = gate_flt[118].in_fault_list[0][j].input_index;
 	int typ = gate_flt[118].in_fault_list[0][j].type;
-	int res = gate_flt[118].in_fault_list[0][j].res;
-	printf ("Fault Gate: %d, Gate Name: %s, Fault Pin: %d, Fault Type: %d Fault Res: %d\n",
-		g_ind, ckt->gate[g_ind].name, i_ind, typ, res);
+	int st = gate_flt[118].in_fault_list[0][j].status;
+	printf ("Fault Gate: %d, Gate Name: %s, Fault Pin: %d, Fault Type: %d Fault Status: %d\n",
+		g_ind, ckt->gate[g_ind].name, i_ind, typ, st);
     }
 printf ("Change 118 -1\n");
     for (j = 0; j < gate_flt[118].out_fault; j++) {
 	int g_ind = gate_flt[118].out_fault_list[j].gate_index;
 	int i_ind = gate_flt[118].out_fault_list[j].input_index;
 	int typ = gate_flt[118].out_fault_list[j].type;
-	int res = gate_flt[118].out_fault_list[j].res;
-	printf ("Fault Gate: %d, Gate Name: %s, Fault Pin: %d, Fault Type: %d Fault Res: %d\n",
-		g_ind, ckt->gate[g_ind].name, i_ind, typ, res);
+	int st = gate_flt[118].out_fault_list[j].status;
+	printf ("Fault Gate: %d, Gate Name: %s, Fault Pin: %d, Fault Type: %d Fault Status: %d\n",
+		g_ind, ckt->gate[g_ind].name, i_ind, typ, st);
     }
-*/
+*/  
   return(undetected_flist);
 
   /********************/

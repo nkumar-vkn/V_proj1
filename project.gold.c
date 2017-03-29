@@ -123,6 +123,9 @@ fault_list_t *three_val_fault_simulate(ckt,pat,undetected_flist)
   /* fault-free simulation */
   /*************************/
 
+    for (i = 0; i < ckt->ngates; i++) {
+	printf ("Gate Index: %d, Gate Type: %d Gate Fanin: %d %d\n", i, ckt->gate[i].type, ckt->gate[i].fanin[0], ckt->gate[i].fanin[1]);
+    }
   /* loop through all patterns */
   for (p = 0; p < pat->len; p++) {
     /* initialize all gate values to UNDEFINED */
