@@ -58,6 +58,7 @@ void delete_fault (circuit_t *ckt, fault_list_t **undetected_flist, fault_list_t
   int g_search;
   fault_list_t *new_fptr;
   fault_list_t *new_prev_fptr = *prev_fptr;
+
   /* remove fault from undetected fault list */
   if ( *prev_fptr == (fault_list_t *)NULL ) {
     /* if first fault in fault list, advance head of list pointer */
@@ -71,7 +72,6 @@ void delete_fault (circuit_t *ckt, fault_list_t **undetected_flist, fault_list_t
   if ((i_ind >= 0) && (ckt->gate[ckt->gate[g_ind].fanin[i_ind]].num_fanout == 1)) {
     g_search = ckt->gate[g_ind].fanin[i_ind];
     for (new_fptr = (*fptr)->next; new_fptr != (fault_list_t *)NULL; new_fptr = new_fptr->next) {
-      //printf ("Gate_index: %d, Input Index: %d, Fault Type: %d\n", new_fptr->gate_index, new_fptr->input_index, new_fptr->type);
       if ((new_fptr->gate_index == g_search) && (new_fptr->input_index == -1) && (new_fptr->type == type)) {
 	delete_fault(ckt, undetected_flist, &new_fptr, &new_prev_fptr);
 	break;
@@ -80,6 +80,105 @@ void delete_fault (circuit_t *ckt, fault_list_t **undetected_flist, fault_list_t
 	break;
       else
 	new_prev_fptr = new_fptr;
+    }
+  }
+
+  else if (i_ind == -1) {
+    switch (ckt->gate[g_ind].type) {
+      case PO:
+      case PI:
+      case PO_VCC:
+      case PO_GND:
+	break;
+      case INV:
+      case BUF:
+	if (ckt->gate[ckt->gate[g_ind].fanin[0]].num_fanout == 1) {
+	  g_search = ckt->gate[g_ind].fanin[0];
+	  type = (ckt->gate[g_ind].type == INV) ? !type : type;
+	  for (new_fptr = (*fptr)->next; new_fptr != (fault_list_t *)NULL; new_fptr = new_fptr->next) {
+	    if ((new_fptr->gate_index == g_search) && (new_fptr->input_index == -1) && (new_fptr->type == type)) {
+	      delete_fault(ckt, undetected_flist, &new_fptr, &new_prev_fptr);
+	      break;
+            }
+            else if (new_fptr->gate_index < g_search)
+	      break;
+            else
+	      new_prev_fptr = new_fptr;
+          }
+        }
+	break;
+      case AND:
+      case NOR:
+	if (type == S_A_0) {
+	  if (ckt->gate[ckt->gate[g_ind].fanin[0]].num_fanout == 1) {
+	    g_search = ckt->gate[g_ind].fanin[0];
+	    type = (ckt->gate[g_ind].type == NOR) ? !type : type;
+	    for (new_fptr = (*fptr)->next; new_fptr != (fault_list_t *)NULL; new_fptr = new_fptr->next) {
+	      if ((new_fptr->gate_index == g_search) && (new_fptr->input_index == -1) && (new_fptr->type == type)) {
+	        delete_fault(ckt, undetected_flist, &new_fptr, &new_prev_fptr);
+	        break;
+              }
+              else if (new_fptr->gate_index < g_search)
+	        break;
+              else
+	        new_prev_fptr = new_fptr;
+            }
+	    type = (ckt->gate[g_ind].type == NOR) ? !type : type;
+          }
+	  else if (ckt->gate[ckt->gate[g_ind].fanin[1]].num_fanout == 1) {
+	    g_search = ckt->gate[g_ind].fanin[1];
+	    type = (ckt->gate[g_ind].type == NOR) ? !type : type;
+	    new_prev_fptr = *prev_fptr;
+	    for (new_fptr = (*fptr)->next; new_fptr != (fault_list_t *)NULL; new_fptr = new_fptr->next) {
+	      if ((new_fptr->gate_index == g_search) && (new_fptr->input_index == -1) && (new_fptr->type == type)) {
+	        delete_fault(ckt, undetected_flist, &new_fptr, &new_prev_fptr);
+	        break;
+              }
+              else if (new_fptr->gate_index < g_search)
+	        break;
+              else
+	        new_prev_fptr = new_fptr;
+            }
+          }
+	}
+	break;
+      case OR:
+      case NAND:
+	if (type == S_A_1) {
+	  if (ckt->gate[ckt->gate[g_ind].fanin[0]].num_fanout == 1) {
+	    g_search = ckt->gate[g_ind].fanin[0];
+	    type = (ckt->gate[g_ind].type == NAND) ? !type : type;
+	    for (new_fptr = (*fptr)->next; new_fptr != (fault_list_t *)NULL; new_fptr = new_fptr->next) {
+	      if ((new_fptr->gate_index == g_search) && (new_fptr->input_index == -1) && (new_fptr->type == type)) {
+	        delete_fault(ckt, undetected_flist, &new_fptr, &new_prev_fptr);
+	        break;
+              }
+              else if (new_fptr->gate_index < g_search)
+	        break;
+              else
+	        new_prev_fptr = new_fptr;
+            }
+	    type = (ckt->gate[g_ind].type == NAND) ? !type : type;
+          }
+	  if (ckt->gate[ckt->gate[g_ind].fanin[1]].num_fanout == 1) {
+	    g_search = ckt->gate[g_ind].fanin[1];
+	    type = (ckt->gate[g_ind].type == NAND) ? !type : type;
+	    new_prev_fptr = *prev_fptr;
+	    for (new_fptr = (*fptr)->next; new_fptr != (fault_list_t *)NULL; new_fptr = new_fptr->next) {
+	      if ((new_fptr->gate_index == g_search) && (new_fptr->input_index == -1) && (new_fptr->type == type)) {
+	        delete_fault(ckt, undetected_flist, &new_fptr, &new_prev_fptr);
+	        break;
+              }
+              else if (new_fptr->gate_index < g_search)
+	        break;
+              else
+	        new_prev_fptr = new_fptr;
+            }
+          }
+	}
+	break;
+      default:
+	assert(0);
     }
   }
 
@@ -109,13 +208,11 @@ fault_list_t *three_val_fault_simulate(ckt,pat,undetected_flist)
   int detected_flag, j, pat_pos, bit_A, bit_B;
   gate_val_t gate_val[MAX_GATES];
   int bit_mask[MAX_PO], corr_out_A[MAX_PO], corr_out_B[MAX_PO], corr_in_A[MAX_PI], corr_in_B[MAX_PI], flt_bit_mask;
+ 
   /*************************/
   /* fault-free simulation */
   /*************************/
 
-    //for (i = 0; i < ckt->ngates; i++) {
-	//printf ("Gate Index: %d, Gate Type: %d Gate Fanin: %d %d\n", i, ckt->gate[i].type, ckt->gate[i].fanin[0], ckt->gate[i].fanin[1]);
-    //}
   /* loop through all patterns */
   for (p = 0; p < (pat->len >> PAT_POW) + 1; p++) {
     //printf ("Pattern LOOP: %d\n", p);
@@ -302,10 +399,6 @@ fault_list_t *three_val_fault_simulate(ckt,pat,undetected_flist)
       }
     }
   }
-/*
-  for (fptr=undetected_flist; fptr != (fault_list_t *)NULL; fptr=fptr->next) {
-    printf ("Fault Gate: %d Input Index: %d Fault Type: %d\n", fptr->gate_index, fptr->input_index, fptr->type);
-  }
-*/
+  
   return(undetected_flist);
 }
