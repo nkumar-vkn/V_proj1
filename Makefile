@@ -30,20 +30,20 @@ YACC_HEADER		= y.tab.h
 YACC_CPROG		= y.tab.c 
 LEX_CPROG		= lex.yy.c
 
-PSRC			= main.c project_pra.c \
+PSRC			= main.c project.c \
 			  build_ckt.c $(LEX_CPROG) $(YACC_CPROG)
-POBJ			= main.o project_pra.o \
+POBJ			= main.o project.o \
 			  build_ckt.o lex.yy.o y.tab.o 
-PHDR			= project_pra.h y.tab.h read_ckt.h
+PHDR			= project.h y.tab.h read_ckt.h
 
 
 #----------------------------------------------------------------------
 
 all:		$(TARGET)
 
-main.o: main.c project_pra.h
-build_ckt.o: build_ckt.c  project_pra.h
-project.o: project_pra.c project_pra.h
+main.o: main.c project.h
+build_ckt.o: build_ckt.c  project.h
+project.o: project.c project.h
 
 $(TARGET):	$(POBJ)
 		$(CC) -o $(TARGET) $(POBJ) $(LIBS)

@@ -1,17 +1,14 @@
-
 /* Constants */
 
 #define TRUE  1
 #define FALSE 0
 
+#define PAT_LEN 32
+#define PAT_POW 5
+
 #define LOGIC_0  0
 #define LOGIC_1  1
 #define LOGIC_X  2
-
-#define LOGIC_0_n  0
-#define LOGIC_1_n  3
-#define LOGIC_X1_n  1
-#define LOGIC_X2_n  2
 
 #define MAX_GATE_FANIN   2
 #define MAX_PATTERNS     100000
@@ -77,4 +74,12 @@ struct circuit_struct {
   int *pi;                    /* array of indices of PI gates */
   int *po;                    /* array of indices of PO gates */
   gate_t *gate;               /* array of gates */
+};
+
+typedef struct gate_val_struct gate_val_t;
+struct gate_val_struct {
+  int in_val_A[MAX_GATE_FANIN];     /* store input values of gate */
+  int in_val_B[MAX_GATE_FANIN];
+  int out_val_A;                    /* store output value of gate */
+  int out_val_B;
 };
