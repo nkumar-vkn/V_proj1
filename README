@@ -1,0 +1,22 @@
+Techniques and data_structures used
+
+Parallel pattern fault simulation was implemented with
+1) New data structure for storing gate values
+	-to accomodate 'x' two 32 bit registers(A and B) were used to implement AND/OR/NOT operations.
+		This allows parallel computation and comparison of gate values for 32 patterns. 
+		-Parallel computation
+		1 - 11; 0 - 00; x - 01. The first bit of 32 patterns are stored in A, second bit in B.
+		AND/OR operation - output_A = input1_A op input2_A; output_B = input1_B op input2_B
+		NOT operation    - output_A = ~input_B; output_B = ~input_A; thus x-01 remains unchaged.
+		-Parallel comparison
+		Mask is generated to cancel the x and then the expected output and generated output are compared.
+		Mask_of_expected = A_expected xor B_expected; Mask_of_gen = A_gen xor B_gen
+		Final_mask = Mask_of_expected & Mask_of_gen
+		if ( A_expected & final_mask) != (A_gen & final_mask) => Fault detected. This allows parallel fault detection with bitwise operations.
+
+2) Flow restructuring
+	-Once 32 bit parallel pattern is generated both output computation and fault simulation are performed before moving onto next 32 patterns.
+	 This removes the computation time of recalculating the 32 bit parallel input for fault simulation.
+
+3) Fault reverse propagation
+	Once a fault is detected at the input of a gate, fault at the output from which the gate gate got its input is also removed from the list if no branching is detected.
